@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.19)
+project(RBTreeExercise)
+add_subdirectory(BaseStructure)
+include_directories(${PROJECT_SOURCE_DIR}/BaseStructure)
+link_libraries(BaseStructure)
+add_executable(RBTree test.c RBTNode.c RBTree.c)
