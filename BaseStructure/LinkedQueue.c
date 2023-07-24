@@ -28,9 +28,9 @@ void Enqueue(Queue* queue, void* ptrData){
     queue->size++;
 
 }
-void* Dequeue(Queue*){
+void* Dequeue(Queue* queue){
 
 }
-size_t GetQueueSize(Queue*){
+size_t GetQueueSize(Queue* queue){
 
 }

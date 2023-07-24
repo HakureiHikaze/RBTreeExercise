@@ -79,8 +79,26 @@ RBTNode* insert_(RBTNode * node, int data){//todo: implement comparing callback
     return 0;
 }
 
+void resetRoot_(RBTree* tree, RBTNode* node){
+    if(node){
+        if(node->parent){
+            resetRoot_(tree, node->parent);
+        }
+        else {
+            tree->root = node;
+            return;
+        }
+    }
+    if(tree->root->parent){
+        resetRoot_(tree, tree->root);
+    }
+}
+
 void Insert(RBTree* tree, int data){
-    if(tree->root)insert_(tree->root, data);
+    if(tree->root) {
+        insert_(tree->root, data);
+        resetRoot_(tree,0);
+    }
     else{
         RBTNode * root = CreateRBTNode();
         root->data = data;
@@ -102,11 +120,13 @@ void clockwise_(RBTNode* node){
         temp->rChild = node;
         temp->parent = node->parent;//transfer parent ptr
         node->parent = temp;
-        if(temp->parent->lChild == node){
-            temp->parent->lChild = temp;
-        }
-        else{
-            temp->parent->rChild = temp;
+        if(temp->parent){
+            if(temp->parent->lChild == node){
+                temp->parent->lChild = temp;
+            }
+            else{
+                temp->parent->rChild = temp;
+            }
         }
     }
 }
@@ -119,12 +139,15 @@ void anticlockwise_(RBTNode* node){
         temp->lChild = node;
         temp->parent = node->parent;
         node->parent = temp;
-        if(temp->parent->lChild == node){
-            temp->parent->lChild = temp;
+        if(temp->parent){
+            if( temp->parent->lChild == node){
+                temp->parent->lChild = temp;
+            }
+            else{
+                temp->parent->rChild = temp;
+            }
         }
-        else{
-            temp->parent->rChild = temp;
-        }
+
     }
 }
 void adjust_(RBTNode* node){
