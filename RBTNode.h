@@ -1,6 +1,7 @@
 #pragma once
+#include<stdlib.h>
 typedef struct RBTNode_{
-    int data;
+    size_t data;
     int color;
     struct RBTNode_* parent,* lChild,* rChild;
 }RBTNode;

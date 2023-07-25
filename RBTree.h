@@ -8,5 +8,6 @@ extern void RBTMidTraversal(RBTree*);
 extern void RBTPreTraversal(RBTree*);
 extern void RBTPostTraversal(RBTree*);
 extern void Release(RBTree*);
-extern void Insert(RBTree*, int);
+extern void Insert(RBTree*, size_t);
 extern int GetDepth(RBTree*);
+extern RBTNode* FindData(RBTree*, size_t, size_t*);

@@ -21,12 +21,12 @@ void RBTMidTraversal(RBTree* tree){
 void releaseRecursively_(RBTNode* node){
     if(node->lChild) {
         releaseRecursively_(node->lChild);
-        free(node->lChild);
     }
+    free(node->lChild);
     if(node->rChild) {
         releaseRecursively_(node->rChild);
-        free(node->rChild);
     }
+    free(node->rChild);
 }
 
 void Release(RBTree* tree){
@@ -49,17 +49,22 @@ void adjust_redP_RR_LL_blackU(RBTNode*);
 void anticlockwise_(RBTNode*);
 void clockwise_(RBTNode*);
 
-RBTNode* insert_(RBTNode * node, int data){//todo: implement comparing callback
+RBTNode* createRBTNode_(RBTNode* parent, size_t data, int color){
+    RBTNode * newNode = CreateRBTNode();
+    newNode->parent = parent;
+    newNode->data = data;
+    newNode->color = color;
+    return newNode;
+}
+
+RBTNode* insert_(RBTNode * node, size_t data){//todo: implement comparing callback
     if (data >= node->data){
         if(node->rChild) {
             insert_(node->rChild, data);
         }
         else {
-            RBTNode * newNode = CreateRBTNode();
+            RBTNode * newNode = createRBTNode_(node,data,1);
             node->rChild = newNode;
-            newNode->parent = node;
-            newNode->data = data;
-            newNode->color = 1;
             adjust_(newNode);
             return newNode;
         }
@@ -67,11 +72,8 @@ RBTNode* insert_(RBTNode * node, int data){//todo: implement comparing callback
         if(node->lChild){
             insert_(node->lChild, data);
         }else{
-            RBTNode * newNode = CreateRBTNode();
+            RBTNode * newNode = createRBTNode_(node,data,1);
             node->lChild = newNode;
-            newNode->parent = node;
-            newNode->data = data;
-            newNode->color = 1;
             adjust_(newNode);
             return newNode;
         }
@@ -94,7 +96,7 @@ void resetRoot_(RBTree* tree, RBTNode* node){
     }
 }
 
-void Insert(RBTree* tree, int data){
+void Insert(RBTree* tree, size_t data){
     if(tree->root) {
         insert_(tree->root, data);
         resetRoot_(tree,0);
@@ -130,6 +132,7 @@ void clockwise_(RBTNode* node){
         }
     }
 }
+
 void anticlockwise_(RBTNode* node){
     if(node->rChild){
         //temp: original rChild of current node
@@ -147,18 +150,25 @@ void anticlockwise_(RBTNode* node){
                 temp->parent->rChild = temp;
             }
         }
-
     }
 }
+
+void clockwiseNew_(RBTNode* node){
+
+}
+
 void adjust_(RBTNode* node){
     RBTNode* parent = node->parent;
     RBTNode* uncle = getUncle_(node);
     RBTNode* grandparent = getGrandparent_(node);
+    //根节点，设置为黑节点后直接添加
     if(!parent) {//root
         node->color = BLACK;
         return;
     }
+    //父节点为黑，直接添加
     if(parent->color == BLACK)return;
+    //第二层的情形
     if(!grandparent){//1st children
         adjust_(parent);
         return;
@@ -194,6 +204,7 @@ void adjust_redP_redU(RBTNode* node){//rNrPrU, G exists
     getGrandparent_(node)->color = RED;
     adjust_(getGrandparent_(node));
 }
+
 void adjust_redP_RL_LR_blackU(RBTNode* node){//0: lrPrrNbU; 1: rrPlrNbU
     RBTNode* originParent = node->parent;
     RBTNode* originGrand = getGrandparent_(node);
@@ -208,7 +219,6 @@ void adjust_redP_RL_LR_blackU(RBTNode* node){//0: lrPrrNbU; 1: rrPlrNbU
 void adjust_redP_RR_LL_blackU(RBTNode* node){
     RBTNode* originParent = node->parent;
     RBTNode* originGrand = getGrandparent_(node);
-    RBTNode* originUncle = getUncle_(node);
     if(originGrand->rChild == originParent && originParent->rChild == node){
         anticlockwise_(originGrand);
         originGrand->color = RED;
@@ -225,4 +235,24 @@ int getDepth_(RBTNode* node){
 }
 int GetDepth(RBTree* tree){
     return tree?getDepth_(tree->root):0;
+}
+
+RBTNode* findData_(RBTNode* node, size_t data, size_t* depth){
+    if(data == node->data){
+        return node;
+    }else if(node->rChild && data > node->data){
+        *depth+=1;
+        return findData_(node->rChild, data, depth);
+    }else if(node->rChild && data < node->data){
+        *depth+=1;
+        return findData_(node->lChild, data, depth);
+    }else{
+        depth = 0;
+        return 0;
+    }
+}
+
+RBTNode* FindData(RBTree* tree, size_t data, size_t* depth){
+    *depth+=1;
+    return findData_(tree->root, data, depth);
 }
