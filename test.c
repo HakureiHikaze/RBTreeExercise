@@ -4,6 +4,7 @@
 #include <time.h>
 #include "MT19937.h"
 #include "SinglyLinkedList.h"
+#include "Utilities.h"
 
 void MT19937Test(){
     unsigned long seed = time(NULL);
@@ -48,7 +49,7 @@ void SinglyLinkedListTest(){
     SLListRelease(list);
 }
 
-void NonredundantTest(){
+void MTTest(){
     SLList * list = SLListInit();
     unsigned long seed = time(NULL);
     MT19937 * mt = InitRandMT(seed);
@@ -58,6 +59,13 @@ void NonredundantTest(){
     while(list->length){
         printf("%ld\n", SLListDelete(list, ExtractRandMT(mt)%list->length));
     }
+}
+void NonredundantTest(){
+    NonRedundantRNG* rng = NonRedundantRNGInit((size_t)time(NULL),-128,256);
+    for(int i = 0; i<256; i++){
+        printf("%d\n", NRRNGExtract(rng));
+    }
+    NRRNGRelease(rng);
 }
 
 int main(){
