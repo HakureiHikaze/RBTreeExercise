@@ -10,3 +10,4 @@ typedef struct MT19937_{
 typedef MT19937 RandMT;
 extern MT19937* InitRandMT(unsigned long);
 extern int ExtractRandMT(MT19937*);
+extern void MT19937Release(MT19937*);

@@ -38,3 +38,7 @@ int ExtractRandMT(MT19937* mt){
     mt->mti = (mt->mti+1) % 624;
     return int_(y);
 }
+
+void MT19937Release(MT19937* mt){
+    if(mt)free(mt);
+}

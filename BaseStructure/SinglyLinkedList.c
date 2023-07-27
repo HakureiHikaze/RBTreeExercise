@@ -103,6 +103,7 @@ long SLListDelete(SLList* list, size_t index){
     return tempData;
 }
 void SLListRelease(SLList* list){
+    if(!list)return;
     SNode* cursor = list->first;
     while(cursor){
         SNode* temp = cursor->next;
