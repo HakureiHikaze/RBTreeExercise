@@ -15,28 +15,16 @@ void MT19937Test(){
 }
 
 void RBTreeTest(){
-    const int CAPACITY = 16;
-    RBTree* test = CreateRBTree();
-    for(int i =1; i <= CAPACITY; i++){
-        Insert(test,i);
+    NonRedundantRNG * rng = NonRedundantRNGInit((unsigned long )time(NULL),-16,32);
+    RBTree * tree = CreateRBTree();
+    for(int i = 0; i<32; i++){
+        Insert(tree, NRRNGExtract(rng));
     }
-    unsigned seed = (unsigned)time(NULL);
-    for(int j = 0; j<100; j++){
-        seed = (seed<<5)*5+seed;
-        srand(seed);
-        size_t data = ((rand()<<2)) % CAPACITY + 1;
+    for(int i =-16; i<16; i++){
         size_t depth = 0;
-        printf("Finding %zu\n",data);
-        RBTNode* result = FindData(test,data, &depth);
-        printf("Found %zu at 0x%p in the depth of %zu.\n", data, result, depth);
+        RBTNode * found = FindData(tree,i,&depth);
+        printf("%d\n",found->data);
     }
-    size_t depth = 0;
-    printf("Finding %d\n", CAPACITY);
-    RBTNode* result = FindData(test, CAPACITY, &depth);
-    printf("Found %d at 0x%p in the depth of %zu.\n", CAPACITY, result, depth);
-    //printf("Depth of tree is %d\n", GetDepth(test));
-    Release(test);
-    printf("Size of long long: %zu", sizeof (long long));
 }
 
 void SinglyLinkedListTest(){
@@ -69,6 +57,6 @@ void NonredundantTest(){
 }
 
 int main(){
-    NonredundantTest();
+    RBTreeTest();
     return 0;
 }
