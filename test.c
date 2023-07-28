@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <locale.h>
 #include "MT19937.h"
 #include "SinglyLinkedList.h"
 #include "Utilities.h"
@@ -15,16 +16,31 @@ void MT19937Test(){
 }
 
 void RBTreeTest(){
-    NonRedundantRNG * rng = NonRedundantRNGInit((unsigned long )time(NULL),-16,32);
+    NonRedundantRNG * rng = NonRedundantRNGInit((unsigned long )time(NULL),16,20);
     RBTree * tree = CreateRBTree();
-    for(int i = 0; i<32; i++){
+    for(int i = 0; i<20; i++){
         Insert(tree, NRRNGExtract(rng));
     }
-    for(int i =-16; i<16; i++){
+    for(int i =16; i<36; i++){
         size_t depth = 0;
-        RBTNode * found = FindData(tree,i,&depth);
+        RBTNode * found = FindData(tree,(size_t)i,&depth);
         printf("%d\n",found->data);
     }
+    Release(tree);
+    NRRNGRelease(rng);
+}
+void RBTreeTest2(){
+    NonRedundantRNG* rng = NonRedundantRNGInit((unsigned long)time(NULL), 16,16);
+    RBTree* tree = CreateRBTree();
+    int array[16];
+    for(int i = 0; i< 16; i++){
+        array[i] = NRRNGExtract(rng);
+    }
+    for(int i = 0; i<16;i++){
+        Insert(tree,array[i]);
+    }
+    Release(tree);
+    NRRNGRelease(rng);
 }
 
 void SinglyLinkedListTest(){
@@ -57,6 +73,8 @@ void NonredundantTest(){
 }
 
 int main(){
-    RBTreeTest();
+    setlocale(LC_CTYPE,setlocale(LC_ALL,""));
+    wchar_t test = L'┌';
+    wprintf_s(L"%c",test);
     return 0;
 }
