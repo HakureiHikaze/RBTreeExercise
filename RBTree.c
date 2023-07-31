@@ -1,6 +1,7 @@
-#pragma once
 #include <stdlib.h>
 #include "RBTree.h"
+#include "LinkedQueue.h"
+#include "Vector.h"
 #define MAX(m,n) m>n?m:n
 #define RED 1
 #define BLACK 0
@@ -229,11 +230,11 @@ void adjust_redP_RR_LL_blackU(RBTNode* node){
         originParent->color = BLACK;
     }
 }
-int getDepth_(RBTNode* node){
+unsigned getDepth_(RBTNode* node){
     if(!node)return 0;
     return MAX(getDepth_(node->lChild)+1, getDepth_(node->rChild)+1);
 }
-int GetDepth(RBTree* tree){
+unsigned GetDepth(RBTree* tree){
     return tree?getDepth_(tree->root):0;
 }
 
@@ -255,4 +256,49 @@ RBTNode* findData_(RBTNode* node, size_t data, size_t* depth){
 RBTNode* FindData(RBTree* tree, size_t data, size_t* depth){
     *depth+=1;
     return findData_(tree->root, data, depth);
+}
+
+Vector** toLayer_(RBTree* tree){
+    Queue* queues[2];
+    queues[0] = CreateQueue();
+    queues[1] = CreateQueue();
+    unsigned depth = GetDepth(tree);
+    Vector** vector = (Vector**) calloc(depth+1, sizeof(Vector*));
+    vector[0]= (void*)(0ll^depth);
+    for(unsigned i = 1; i<depth+1; i++){
+        vector[i] = VectorCreate();
+    }
+    if(tree){
+        unsigned flag = 0;
+        size_t i = 1;
+        RBTNode* cursor;
+        Enqueue(queues[0],tree->root);
+        while(queues[0]->size || queues[1]->size){
+            cursor = (RBTNode*)Dequeue(queues[flag]);
+            VectorAppend(vector[i],cursor);
+            if(cursor->lChild){
+                Enqueue(queues[!flag], cursor->lChild);
+            }
+            if(cursor->rChild){
+                Enqueue(queues[!flag], cursor->rChild);
+            }
+            if(GetQueueSize(queues[flag]) == 0){
+                flag = !flag;
+                i++;
+            }
+        }
+    }
+    ReleaseQueue(queues[0]);
+    ReleaseQueue(queues[1]);
+    return vector;
+}
+
+Vector** ToLayer(RBTree* tree){
+    return toLayer_(tree);
+}
+
+unsigned* GetMaxDigitsOfEachLayer(RBTree* tree){
+    unsigned depth = GetDepth(tree);
+    unsigned* temp = (unsigned *)calloc(depth, sizeof (unsigned)+1);
+    temp[0] = depth;
 }
