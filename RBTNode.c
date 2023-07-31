@@ -1,4 +1,3 @@
-#pragma once
 #include "RBTNode.h"
 #include <stdio.h>
 #include <stdlib.h>

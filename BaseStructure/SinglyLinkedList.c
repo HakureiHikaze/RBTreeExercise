@@ -42,7 +42,7 @@ void SLListAppend(SLList* list, long data){
 
 void SLListInsert(SLList* list, size_t index, long data){
     //index (-inf, +inf)
-    if(index > list->length || index < 0) exit(-500);
+    if(index > list->length != 0) exit(-500);
     //index [0, list.length]
     SNode* newNode = (SNode*) calloc(1,sizeof (SNode));
     newNode->data = data;
@@ -67,13 +67,13 @@ void SLListInsert(SLList* list, size_t index, long data){
 }
 
 long SLListIndex(SLList* list, size_t index){
-    if(index < 0 || index >= list->length)exit(-501);
+    if(index >= list->length != 0)exit(-501);
     return index_(list,index)->data;
 }
 
 long SLListDelete(SLList* list, size_t index){
     ///index [-inf, inf]
-    if(index < 0 || index >= list->length)exit(-501);
+    if(index >= list->length != 0)exit(-501);
     ///index [0,length-1]
     if(list->length == 1){
         SNode* tempNode = list->first;
