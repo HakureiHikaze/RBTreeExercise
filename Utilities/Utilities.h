@@ -21,3 +21,5 @@ extern uint64_t GetDJB2Hash(const char* s);
 extern NonRedundantRNG* NonRedundantRNGInit(size_t seed, int startAt, unsigned length);
 extern int NRRNGExtract(NonRedundantRNG* rng);
 extern void NRRNGRelease(NonRedundantRNG* rng);
+extern unsigned StrLen(const wchar_t* str);
+extern unsigned DigitLen(long n);

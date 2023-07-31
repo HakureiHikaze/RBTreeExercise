@@ -45,3 +45,24 @@ void NRRNGRelease(NonRedundantRNG* rng){
         free(rng);
     }
 }
+
+unsigned StrLen(const wchar_t* str){
+    size_t i = 0;
+    for(i = 0; str[i]!='\0';i++);
+    return i;
+}
+
+unsigned DigitLen(long n){
+    if(n == 0) return 1;
+    if(n >= (long)0x3b9aca00) return 10;
+    if(n <= (long)0xC4653600) return 11;
+    long divisor = 1;
+    unsigned power = 0;
+    unsigned isMinus = 0;
+    if(n < 0) isMinus = 1;
+    while(n / divisor){
+        divisor *=10;
+        power +=1;
+    }
+    return power+isMinus;
+}
