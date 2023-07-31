@@ -6,6 +6,8 @@
 #include "MT19937.h"
 #include "SinglyLinkedList.h"
 #include "Utilities.h"
+#include "Vector.h"
+#include "LinkedQueue.h"
 
 void MT19937Test(){
     unsigned long seed = time(NULL);
@@ -72,9 +74,45 @@ void NonredundantTest(){
     NRRNGRelease(rng);
 }
 
+void LengthTest(){
+    wchar_t* str = L"测试文本测试文本测试文本测试文本测试文本测试文本";
+    wprintf_s(L"Length of \"%s\" is: %u\n", str, StrLen(str));
+    long i = -8192;
+    long j = 16384;
+    long k = -2000000000;
+    printf_s("Length of %ld is: %u\n",i, DigitLen(i));
+    printf_s("Length of %ld is: %u\n",j, DigitLen(j));
+    printf_s("Length of %ld is: %u\n",k, DigitLen(k));
+}
+void QueueTest(){
+    Queue* queue = CreateQueue();
+    for(void* i = 0; (size_t)i<0x100; i++){
+        Enqueue(queue,i);
+    }
+    for(size_t i = 0; i< 0x100; i++){
+        printf("%ld\n", Dequeue(queue));
+    }
+    ReleaseQueue(queue);
+}
+
+void VectorTest(){
+    Vector * vector = VectorCreate();
+    for(size_t i = 0; i<0xffffffff; i++){
+        VectorAppend(vector,(void*)i);
+    }
+    VectorRelease(vector);
+}
+void ToLayerTest(){
+    RBTree * tree = CreateRBTree();
+    for(int i = 0; i<8; i++){
+        Insert(tree, i);
+    }
+    Vector** vectors = ToLayer(tree);
+    Release(tree);
+}
+
 int main(){
     setlocale(LC_CTYPE,setlocale(LC_ALL,""));
-    wchar_t test = L'┌';
-    wprintf_s(L"%c",test);
+    ToLayerTest();
     return 0;
 }

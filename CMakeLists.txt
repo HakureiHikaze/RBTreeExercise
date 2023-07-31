@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(RBTreeExercise)
+set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_CXX_FLAGS "-g")
 add_subdirectory(BaseStructure)
 add_subdirectory(Utilities)
 include_directories(${PROJECT_SOURCE_DIR}/BaseStructure)
