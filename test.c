@@ -103,12 +103,40 @@ void VectorTest(){
     VectorRelease(vector);
 }
 void ToLayerTest(){
-    RBTree * tree = CreateRBTree();
-    for(int i = 0; i<8; i++){
-        Insert(tree, i);
+    unsigned max = 0;
+    //7, 4, 9, 8, 3, 6, 1, 5, 2,
+    while (1){
+        scanf_s("%lu",&max);
+        NonRedundantRNG * rng = NonRedundantRNGInit((unsigned long )time(NULL), 1, max);
+        int* l = (int*)calloc(max, sizeof(int));
+        int l1[] ={7, 4, 9, 8, 3, 6, 1, 5, 2};
+        for(unsigned i = 0; i < max; i++){
+            l[i] = NRRNGExtract(rng);
+            printf_s("%lu, ",l[i]);
+        }
+        printf_s("\n");
+        RBTree * tree = CreateRBTree();
+        for(unsigned i = 0; i < max; i++){
+            Insert(tree, l[i]);
+        }
+        free(l);
+        Vector** vectors = ToLayer(tree);
+        for(size_t i = 1; i< (size_t)vectors[0]; i++){
+            for(size_t j = 0;j<vectors[i]->size; j++){
+                Vector * v = vectors[i];
+                RBTNode* node = (RBTNode*)v->data[j];
+                printf_s("\t%lu", node? node->data:0);
+            }
+            printf_s(";\n");
+        }
+        for(size_t i = 1; i< (size_t)vectors[0]; i++){
+            VectorRelease(vectors[i]);
+        }
+        free(vectors);
+        Release(tree);
+        fflush(0);
+        printf_s("********new********\n");
     }
-    Vector** vectors = ToLayer(tree);
-    Release(tree);
 }
 
 int main(){

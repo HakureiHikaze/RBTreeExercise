@@ -264,25 +264,32 @@ Vector** toLayer_(RBTree* tree){
     queues[1] = CreateQueue();
     unsigned depth = GetDepth(tree);
     Vector** vector = (Vector**) calloc(depth+1, sizeof(Vector*));
-    vector[0]= (void*)(0ll^depth);
+    vector[0]= (void*)(0ll^depth)+1;
     for(unsigned i = 1; i<depth+1; i++){
         vector[i] = VectorCreate();
     }
     if(tree){
         unsigned flag = 0;
+        unsigned queueFlag[]={1,1};
         size_t i = 1;
         RBTNode* cursor;
         Enqueue(queues[0],tree->root);
-        while(queues[0]->size || queues[1]->size){
+        while( /*queues[0]->size || queues[1]->size||*/queueFlag[flag]){
             cursor = (RBTNode*)Dequeue(queues[flag]);
             VectorAppend(vector[i],cursor);
-            if(cursor->lChild){
+            if(cursor){
                 Enqueue(queues[!flag], cursor->lChild);
-            }
-            if(cursor->rChild){
                 Enqueue(queues[!flag], cursor->rChild);
+                if(cursor->lChild || cursor->rChild){
+                    queueFlag[!flag] = 1;
+                }
+            }else{
+                Enqueue(queues[!flag], 0);
+                Enqueue(queues[!flag], 0);
+                queueFlag[!flag] = queueFlag[!flag] != 0;
             }
             if(GetQueueSize(queues[flag]) == 0){
+                queueFlag[flag] = 0;
                 flag = !flag;
                 i++;
             }
