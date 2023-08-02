@@ -2,9 +2,21 @@
 #include "RBTree.h"
 #include "LinkedQueue.h"
 #include "Vector.h"
+#include "StringProducer.h"
+#include <wchar.h>
+#include "Utilities.h"
 #define MAX(m,n) m>n?m:n
 #define RED 1
 #define BLACK 0
+#define RIGHT L'0'
+#define LEFT L'1'
+wchar_t up_right = L'┌';
+wchar_t down_right = L'└';
+wchar_t up_left = L'┐';
+wchar_t down_left = L'┘';
+wchar_t T_cross = L'┤';
+wchar_t line = L'│';
+
 //the underline after functions indicates internal function
 
 RBTree* CreateRBTree(){
@@ -274,7 +286,7 @@ Vector** toLayer_(RBTree* tree){
         size_t i = 1;
         RBTNode* cursor;
         Enqueue(queues[0],tree->root);
-        while( /*queues[0]->size || queues[1]->size||*/queueFlag[flag]){
+        while(queueFlag[flag]){
             cursor = (RBTNode*)Dequeue(queues[flag]);
             VectorAppend(vector[i],cursor);
             if(cursor){
@@ -304,8 +316,93 @@ Vector** ToLayer(RBTree* tree){
     return toLayer_(tree);
 }
 
-unsigned* GetMaxDigitsOfEachLayer(RBTree* tree){
-    unsigned depth = GetDepth(tree);
-    unsigned* temp = (unsigned *)calloc(depth, sizeof (unsigned)+1);
-    temp[0] = depth;
+///
+/// \param node node
+/// \param width width of whole formatted text
+/// \return formatted text
+wchar_t* formatNode_(RBTNode* node, unsigned width){
+    wchar_t* temp = (wchar_t*) calloc(width+1, sizeof(wchar_t));
+    temp[width] = L'\0';
+    swprintf(temp,width,L"%ld,%u",node->data, node->color);
+    StringProducer* sp = SPNewWStr(temp);
+    free(temp);
+    while(sp->length < width-2){
+        SPInsertWChar(sp,0 , L' ');
+    }
+    SPInsertWChar(sp,0,L'(');
+    SPAppendWChar(sp,L')');
+    temp = SPBuildString(sp);
+    SPRelease(sp);
+    return temp;
+}
+unsigned getMaxDigitsRecur_(RBTNode* node){
+    if(node){
+        unsigned temp = DigitLen((long)node->data);
+        unsigned l = MAX(temp, getMaxDigitsRecur_(node->lChild));
+        unsigned r = MAX(temp, getMaxDigitsRecur_(node->rChild));
+        unsigned re = MAX(l,r);
+        return re;
+    }
+    return 0;
+}
+unsigned getMaxDigitsOfTree_(RBTree* tree){
+    if(tree && tree->root){
+        return getMaxDigitsRecur_(tree->root);
+    }
+    return 0;
+}
+
+//src: https://blog.csdn.net/Hodaka/article/details/128376957
+void drawTreeRecur(RBTNode* node, StringProducer* spWay, unsigned width){
+    if(!spWay) spWay = SPNewEmpty();
+    if(node->rChild){
+        StringProducer* right_way = SPAppendWChar(SPCloneSP(spWay), RIGHT);
+        drawTreeRecur(node->rChild, right_way, width);
+    }
+    StringProducer* pre = SPNewEmpty();
+    if(spWay->length == 0){
+        SPAppendWChar(pre, L' ');
+    }else{
+        for(int i = 0; i<=width; i++){
+            SPAppendWChar(pre, L' ');
+        }
+        for(int i =1; i< spWay->length; i++){
+            if(spWay->buffer[i] != spWay->buffer[i-1]){
+                SPAppendWChar(pre, line);
+                for(int j = 0; j<=width-1; j++){
+                    SPAppendWChar(pre, L' ');
+                }
+            }else{
+                for(int j = 0; j<=width; j++){
+                    SPAppendWChar(pre, L' ');
+                }
+            }
+        }
+        size_t l = spWay->length;
+        if(spWay->buffer[l-1] == L'0'){
+            SPAppendWChar(pre,up_right);
+        }else{
+            SPAppendWChar(pre,down_right);
+        }
+    }
+    wchar_t* preStr = SPBuildString(pre);
+    SPRelease(pre);
+    wprintf_s(preStr);
+    wprintf_s(formatNode_(node, width));
+    if (node->lChild && node->rChild)
+        wprintf_s(L"%c",T_cross);
+    else if (node->lChild && !node->rChild)
+        wprintf_s(L"%c",up_left);
+    else if (!node->lChild && node->rChild)
+        wprintf_s(L"%c",down_left);
+    wprintf_s(L"\n");
+    if(node->lChild){
+        StringProducer* left_way = SPAppendWChar(SPCloneSP(spWay), LEFT);
+        drawTreeRecur(node->lChild, left_way, width);
+    }
+    SPRelease(spWay);
+}
+
+void DrawTree(RBTree* tree){
+    if(tree)drawTreeRecur(tree->root,0, getMaxDigitsOfTree_(tree)+4);
 }
