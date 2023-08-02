@@ -103,11 +103,13 @@ void VectorTest(){
     }
     VectorRelease(vector);
 }
+
 void ToLayerTest(){
-    unsigned max = 0;
+    int max = 0;
     //7, 4, 9, 8, 3, 6, 1, 5, 2,
     while (1){
-        scanf_s("%lu",&max);
+        scanf("%d",&max);
+        if(max < 0) return;
         NonRedundantRNG * rng = NonRedundantRNGInit((unsigned long )time(NULL), 1, max);
         int* l = (int*)calloc(max, sizeof(int));
         int l1[] ={7, 4, 9, 8, 3, 6, 1, 5, 2};
@@ -122,39 +124,29 @@ void ToLayerTest(){
         for(unsigned i = 0; i < max; i++){
             Insert(tree, l[i]);
         }
+        DrawTree(tree);
         free(l);
-        Vector** vectors = ToLayer(tree);
-        for(size_t i = 1; i< (size_t)vectors[0]; i++){
-            for(size_t j = 0;j<vectors[i]->size; j++){
-                Vector * v = vectors[i];
-                RBTNode* node = (RBTNode*)v->data[j];
-                //printf_s("\t%lu,%d", node? node->data:0, node?node->color : 0);
-            }
-            //printf_s(";\n");
-        }
-        for(size_t i = 1; i< (size_t)vectors[0]; i++){
-            VectorRelease(vectors[i]);
-        }
-        free(vectors);
         Release(tree);
         fflush(0);
         printf_s("********new********\n");
     }
 }
-
+extern wchar_t* formatNode_(RBTNode* node, unsigned width);
+unsigned getMaxDigitsOfTree_(RBTree* tree);
 void SPTest1(){
-    StringProducer* test = SPNewWStr(L"testtesttesttest");
-    SPAppendWStr(test,L"append1append2append3append4append5");
-    SPInsertWChar(test,0,L'i');
-    SPInsertWStr(test,2,L"oo");
-    wprintf_s(SPGetWStringPtr(test));
-    wprintf_s(L"%c", SPDeleteAt(test,0));
-    wprintf_s(L"\n");
-    SPRelease(test);
+    char test[16] = "";
+    sprintf(test,"%5d,%d %c",12,1,'%');
+    printf_s(test);
+}
+
+void DrawTreeTest1(){
+    RBTree * tree = CreateRBTree();
+    DrawTree(tree);
+    Release(tree);
 }
 
 int main(){
     setlocale(LC_CTYPE,setlocale(LC_ALL,""));
-    SPTest1();
+    ToLayerTest();
     return 0;
 }
