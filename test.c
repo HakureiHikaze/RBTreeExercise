@@ -8,6 +8,7 @@
 #include "Utilities.h"
 #include "Vector.h"
 #include "LinkedQueue.h"
+#include "StringProducer.h"
 
 void MT19937Test(){
     unsigned long seed = time(NULL);
@@ -110,11 +111,13 @@ void ToLayerTest(){
         NonRedundantRNG * rng = NonRedundantRNGInit((unsigned long )time(NULL), 1, max);
         int* l = (int*)calloc(max, sizeof(int));
         int l1[] ={7, 4, 9, 8, 3, 6, 1, 5, 2};
+        printf_s("Generating random numbers.\n");
         for(unsigned i = 0; i < max; i++){
             l[i] = NRRNGExtract(rng);
-            printf_s("%lu, ",l[i]);
+            //printf_s("%lu, ",l[i]);
         }
-        printf_s("\n");
+        NRRNGRelease(rng);
+        printf_s("Random numbers generated.\n");
         RBTree * tree = CreateRBTree();
         for(unsigned i = 0; i < max; i++){
             Insert(tree, l[i]);
@@ -125,9 +128,9 @@ void ToLayerTest(){
             for(size_t j = 0;j<vectors[i]->size; j++){
                 Vector * v = vectors[i];
                 RBTNode* node = (RBTNode*)v->data[j];
-                printf_s("\t%lu", node? node->data:0);
+                //printf_s("\t%lu,%d", node? node->data:0, node?node->color : 0);
             }
-            printf_s(";\n");
+            //printf_s(";\n");
         }
         for(size_t i = 1; i< (size_t)vectors[0]; i++){
             VectorRelease(vectors[i]);
@@ -139,8 +142,19 @@ void ToLayerTest(){
     }
 }
 
+void SPTest1(){
+    StringProducer* test = SPNewWStr(L"testtesttesttest");
+    SPAppendWStr(test,L"append1append2append3append4append5");
+    SPInsertWChar(test,0,L'i');
+    SPInsertWStr(test,2,L"oo");
+    wprintf_s(SPGetWStringPtr(test));
+    wprintf_s(L"%c", SPDeleteAt(test,0));
+    wprintf_s(L"\n");
+    SPRelease(test);
+}
+
 int main(){
     setlocale(LC_CTYPE,setlocale(LC_ALL,""));
-    ToLayerTest();
+    SPTest1();
     return 0;
 }
