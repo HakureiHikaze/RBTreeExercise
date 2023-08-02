@@ -13,3 +13,4 @@ extern void Insert(RBTree*, size_t);
 extern unsigned GetDepth(RBTree*);
 extern RBTNode* FindData(RBTree*, size_t, size_t*);
 extern Vector** ToLayer(RBTree*);
+extern void DrawTree(RBTree* tree);
