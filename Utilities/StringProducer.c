@@ -206,8 +206,9 @@ StringProducer* SPInsertSP(StringProducer* target, size_t index, StringProducer*
     return target;
 }
 wchar_t* SPBuildString(StringProducer* sp){
-    wchar_t* temp = (wchar_t*) calloc(sp->length, sizeof(wchar_t));
+    wchar_t* temp = (wchar_t*) calloc(sp->length+1, sizeof(wchar_t));
     wStrClone_(temp, sp->buffer);
+    temp[sp->length] = L'\0';
     return temp;
 }
 wchar_t* SPGetWStringPtr(StringProducer* sp){
