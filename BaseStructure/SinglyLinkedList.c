@@ -110,4 +110,5 @@ void SLListRelease(SLList* list){
         SNodeRelease(cursor);
         cursor = temp;
     }
+    free(list);
 }

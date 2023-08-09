@@ -108,7 +108,7 @@ void ToLayerTest(){
     int max = 0;
     //7, 4, 9, 8, 3, 6, 1, 5, 2,
     while (1){
-        scanf("%d",&max);
+        scanf_s("%d",&max);
         if(max < 0) return;
         NonRedundantRNG * rng = NonRedundantRNGInit((unsigned long )time(NULL), 1, max);
         int* l = (int*)calloc(max, sizeof(int));

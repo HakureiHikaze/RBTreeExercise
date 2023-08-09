@@ -32,18 +32,19 @@ void RBTMidTraversal(RBTree* tree){
     midTraversal_(tree->root);
 }
 void releaseRecursively_(RBTNode* node){
+    if(!node) return;
     if(node->lChild) {
         releaseRecursively_(node->lChild);
     }
-    free(node->lChild);
     if(node->rChild) {
         releaseRecursively_(node->rChild);
     }
-    free(node->rChild);
+    free(node);
 }
 
 void Release(RBTree* tree){
     if(tree->root) releaseRecursively_(tree->root);
+    free(tree);
 }
 
 RBTNode* getGrandparent_(RBTNode* node){
@@ -323,7 +324,7 @@ Vector** ToLayer(RBTree* tree){
 wchar_t* formatNode_(RBTNode* node, unsigned width){
     wchar_t* temp = (wchar_t*) calloc(width+1, sizeof(wchar_t));
     temp[width] = L'\0';
-    swprintf(temp,width,L"%ld,%u",node->data, node->color);
+    swprintf_s(temp,width,L"%ld,%u",node->data, node->color);
     StringProducer* sp = SPNewWStr(temp);
     free(temp);
     while(sp->length < width-2){
@@ -388,7 +389,10 @@ void drawTreeRecur(RBTNode* node, StringProducer* spWay, unsigned width){
     wchar_t* preStr = SPBuildString(pre);
     SPRelease(pre);
     wprintf_s(preStr);
-    wprintf_s(formatNode_(node, width));
+    free(preStr);
+    wchar_t* nodeStr = formatNode_(node, width);
+    wprintf_s(nodeStr);
+    free(nodeStr);
     if (node->lChild && node->rChild)
         wprintf_s(L"%c",T_cross);
     else if (node->lChild && !node->rChild)
