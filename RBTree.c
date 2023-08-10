@@ -47,13 +47,32 @@ void Release(RBTree* tree){
     free(tree);
 }
 
-RBTNode* getGrandparent_(RBTNode* node){
+inline RBTNode* getGrandparent_(RBTNode* node){
+    if(!node) return 0;
     return node->parent? node->parent->parent:0;
 }
 
-RBTNode* getUncle_(RBTNode* node){
+inline RBTNode* getUncle_(RBTNode* node){
     RBTNode * grand = getGrandparent_(node);
     return grand? (grand->lChild == node->parent? grand->rChild:grand->lChild):0;
+}
+
+inline RBTNode* getBrother_(RBTNode* node){
+    if(!node) return 0;
+    if(!node->parent) return 0;
+    return node->parent->lChild == node? node->parent->rChild : node->parent->lChild;
+}
+
+inline RBTNode* getLNephew_(RBTNode* node){
+    RBTNode* bro = getBrother_(node);
+    if(!bro) return 0;
+    return bro->lChild;
+}
+
+inline RBTNode* getRNephew_(RBTNode* node){
+    RBTNode* bro = getBrother_(node);
+    if(!bro) return 0;
+    return bro->rChild;
 }
 
 void adjust_(RBTNode*);
@@ -121,10 +140,9 @@ void Insert(RBTree* tree, size_t data){
         tree->root = root;
     }
 }
-///
-/// \param node
-/// \param from path that traversals recursively
 
+/// clockwise rotate node's lChild to the top
+/// \param node old root
 void clockwise_(RBTNode* node){
     if(node->lChild){
         //temp: original lChild of current node
@@ -147,6 +165,8 @@ void clockwise_(RBTNode* node){
     }
 }
 
+/// anticlockwise rotate node's rChild to the top
+/// \param node old root
 void anticlockwise_(RBTNode* node){
     if(node->rChild){
         //temp: original rChild of current node
@@ -409,4 +429,184 @@ void drawTreeRecur(RBTNode* node, StringProducer* spWay, unsigned width){
 
 void DrawTree(RBTree* tree){
     if(tree)drawTreeRecur(tree->root,0, getMaxDigitsOfTree_(tree)+4);
+}
+
+RBTNode* findMaximumChild_(RBTNode* node, unsigned* depth){
+    if (!node)return 0;
+    if(!node->rChild) return node;
+    *depth++;
+    return findMaximumChild_(node->rChild, depth);
+}
+
+RBTNode* findMinimumChild_(RBTNode* node, unsigned* depth){
+    if (!node)return 0;
+    if(!node->lChild) return node;
+    *depth++;
+    return findMinimumChild_(node->lChild, depth);
+}
+
+inline RBTNode* getExistingChild_(RBTNode* node){
+    if(!node) return 0;
+    if(node->lChild) return node->lChild;
+    if(node->rChild) return node->rChild;
+    return 0;
+}
+unsigned delete_case_1(RBTree* tree, RBTNode* node);
+unsigned delete_case_2(RBTree* tree, RBTNode* node);
+unsigned delete_case_3(RBTree* tree, RBTNode* node);
+unsigned delete_case_4(RBTree* tree, RBTNode* node);
+unsigned delete_case_5(RBTree* tree, RBTNode* node);
+unsigned delete_case_6(RBTree* tree, RBTNode* node);
+
+unsigned delete_(RBTree* tree, RBTNode* node){
+    // node[?]
+    // node not exists, return.
+    if(!node) return 0;
+    // node[o] lc[o] rc[o]
+    // node has both lChild and rChild, move predecessor's or successor's data to current node
+    // and delete_ predecessor or successor recursively.
+    if(node->lChild && node->rChild){
+        unsigned lDepth = 0, rDepth = 0;
+        RBTNode
+            * predecessor = findMaximumChild_(node->lChild, &lDepth),
+            * successor = findMinimumChild_(node->rChild, &rDepth);
+        if(lDepth >= rDepth){
+            node->data = predecessor->data;
+            return delete_(tree, predecessor);
+        }else{
+            node->data = successor->data;
+            return delete_(tree, successor);
+        }
+    }
+    // node[o] child[<=1] parent[?] bro[?] nephew[?]
+    // node has at most 1 child, enter main processing flow
+    RBTNode
+        * child = getExistingChild_(node),
+        * parent = node->parent,
+        * brother = getBrother_(node);
+    // node[o] child[<=1] parent[x]
+    // node has no parent (root node), elevate child to the root (nullable)
+    if(!parent){
+        tree->root = child;
+        if(child) child->parent = 0;
+        free(node);
+        return 1;
+    }
+    // node[0] child[<=1] parent[o]
+    // node has parent, elevate child (nullable)
+    if(node->parent->lChild == node){
+        node->parent->lChild = child;
+    }else{
+        node->parent->rChild = child;
+    }
+    // node[o] child[x] parent[o]
+    // node has no child, free node immediately
+    if(!child){
+        free(node);
+        return 1;
+    }
+    // node[r] child[1] parent[o]
+    unsigned r = 0;
+    if(node->color == BLACK) {
+        if(child->color == RED){
+            child->color = BLACK;
+        }else{
+            r = delete_case_1(tree, child);
+        }
+    }
+    free(node);
+    return r;
+}
+unsigned delete_case_1(RBTree* tree, RBTNode* node){
+    if(node->parent){
+        delete_case_2(tree, node);
+    }
+    return 1;
+}
+unsigned delete_case_2(RBTree* tree, RBTNode* node){
+    RBTNode* sibling = getBrother_(node);
+    if(sibling->color == RED){
+        node->parent->color = RED;
+        sibling->color = BLACK;
+        if(node->parent->lChild == node){
+            if(tree->root == node->parent){
+                tree->root = node->parent->rChild;
+            }
+            anticlockwise_(node->parent);
+        }else{
+            if(tree->root == node->parent){
+                tree->root = node->parent->lChild;
+            }
+            clockwise_(node->parent);
+        }
+    }
+    return delete_case_3(tree, node);
+}
+
+unsigned delete_case_3(RBTree* tree, RBTNode* node){
+    RBTNode* sibling = getBrother_(node);
+    if( (node->parent->color == BLACK) &&
+        (sibling->color == BLACK) &&
+        (sibling->lChild->color == BLACK) &&
+        (sibling->rChild->color == BLACK)){
+        sibling->color = RED;
+        return delete_case_1(tree, node->parent);
+    }else{
+        return delete_case_4(tree, node);
+    }
+}
+
+unsigned delete_case_4(RBTree* tree, RBTNode* node){
+    RBTNode* sibling = getBrother_(node);
+    if( (node->parent->color == RED)&&
+        (sibling->color == BLACK)&&
+        (sibling->lChild->color == BLACK)&&
+        (sibling->rChild->color == BLACK)){
+        sibling->color = RED;
+        node->parent->color = BLACK;
+        return 1;
+    }else{
+        return delete_case_5(tree, node);
+    }
+}
+
+unsigned delete_case_5(RBTree* tree, RBTNode* node){
+    RBTNode* sibling = getBrother_(node);
+    if(sibling->color == BLACK){
+        if((node->parent->lChild == node)&&(sibling->rChild->color == BLACK)&&(sibling->lChild->color == RED)){
+            sibling->color = RED;
+            sibling->lChild->color = BLACK;
+            clockwise_(sibling);
+        }else if((node->parent->rChild == node)&&(sibling->lChild->color == BLACK)&&(sibling->rChild->color == RED)){
+            sibling->color = RED;
+            sibling->rChild->color = BLACK;
+            anticlockwise_(sibling);
+        }
+    }
+    return delete_case_6(tree, node);
+}
+
+unsigned delete_case_6(RBTree* tree, RBTNode* node){
+    RBTNode* sibling = getBrother_(node);
+    sibling->color = node->parent->color;
+    node->parent->color = BLACK;
+    if(node->parent->lChild == node){
+        sibling->rChild->color = BLACK;
+        if(tree->root == node->parent){
+            tree->root = node->parent->rChild;
+        }
+        anticlockwise_(node->parent);
+    }else{
+        sibling->lChild->color = BLACK;
+        if(tree->root == node->parent){
+            tree->root = node->parent->lChild;
+        }
+        clockwise_(node->parent);
+    }
+    return 1;
+}
+
+unsigned Delete(RBTree* tree, size_t data){
+    size_t depth = 0;
+    return delete_(tree, FindData(tree,data, &depth));
 }
