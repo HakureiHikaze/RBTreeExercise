@@ -77,13 +77,13 @@ void NonredundantTest(){
 
 void LengthTest(){
     wchar_t* str = L"测试文本测试文本测试文本测试文本测试文本测试文本";
-    wprintf_s(L"Length of \"%s\" is: %u\n", str, StrLen(str));
+    wprintf(L"Length of \"%ls\" is: %u\n", str, StrLen(str));
     long i = -8192;
     long j = 16384;
     long k = -2000000000;
-    printf_s("Length of %ld is: %u\n",i, DigitLen(i));
-    printf_s("Length of %ld is: %u\n",j, DigitLen(j));
-    printf_s("Length of %ld is: %u\n",k, DigitLen(k));
+    printf("Length of %ld is: %u\n",i, DigitLen(i));
+    printf("Length of %ld is: %u\n",j, DigitLen(j));
+    printf("Length of %ld is: %u\n",k, DigitLen(k));
 }
 void QueueTest(){
     Queue* queue = CreateQueue();
@@ -108,18 +108,18 @@ void ToLayerTest(){
     int max = 0;
     //7, 4, 9, 8, 3, 6, 1, 5, 2,
     while (1){
-        scanf_s("%d",&max);
+        scanf("%d",&max);
         if(max < 0) return;
         NonRedundantRNG * rng = NonRedundantRNGInit((unsigned long )time(NULL), 1, max);
         int* l = (int*)calloc(max, sizeof(int));
         int l1[] ={7, 4, 9, 8, 3, 6, 1, 5, 2};
-        printf_s("Generating random numbers.\n");
+        printf("Generating random numbers.\n");
         for(unsigned i = 0; i < max; i++){
             l[i] = NRRNGExtract(rng);
-            //printf_s("%lu, ",l[i]);
+            //printf("%lu, ",l[i]);
         }
         NRRNGRelease(rng);
-        printf_s("Random numbers generated.\n");
+        printf("Random numbers generated.\n");
         RBTree * tree = CreateRBTree();
         for(unsigned i = 0; i < max; i++){
             Insert(tree, l[i]);
@@ -128,7 +128,7 @@ void ToLayerTest(){
         free(l);
         Release(tree);
         fflush(0);
-        printf_s("********new********\n");
+        printf("********new********\n");
     }
 }
 extern wchar_t* formatNode_(RBTNode* node, unsigned width);
@@ -136,7 +136,7 @@ unsigned getMaxDigitsOfTree_(RBTree* tree);
 void SPTest1(){
     char test[16] = "";
     sprintf(test,"%5d,%d %c",12,1,'%');
-    printf_s(test);
+    printf("%s", test);
 }
 
 void DrawTreeTest1(){

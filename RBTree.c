@@ -47,29 +47,29 @@ void Release(RBTree* tree){
     free(tree);
 }
 
-inline RBTNode* getGrandparent_(RBTNode* node){
+RBTNode* getGrandparent_(RBTNode* node){
     if(!node) return 0;
     return node->parent? node->parent->parent:0;
 }
 
-inline RBTNode* getUncle_(RBTNode* node){
+RBTNode* getUncle_(RBTNode* node){
     RBTNode * grand = getGrandparent_(node);
     return grand? (grand->lChild == node->parent? grand->rChild:grand->lChild):0;
 }
 
-inline RBTNode* getBrother_(RBTNode* node){
+RBTNode* getBrother_(RBTNode* node){
     if(!node) return 0;
     if(!node->parent) return 0;
     return node->parent->lChild == node? node->parent->rChild : node->parent->lChild;
 }
 
-inline RBTNode* getLNephew_(RBTNode* node){
+RBTNode* getLNephew_(RBTNode* node){
     RBTNode* bro = getBrother_(node);
     if(!bro) return 0;
     return bro->lChild;
 }
 
-inline RBTNode* getRNephew_(RBTNode* node){
+RBTNode* getRNephew_(RBTNode* node){
     RBTNode* bro = getBrother_(node);
     if(!bro) return 0;
     return bro->rChild;
@@ -272,16 +272,19 @@ unsigned GetDepth(RBTree* tree){
 }
 
 RBTNode* findData_(RBTNode* node, size_t data, size_t* depth){
+    if(!node) {
+        return 0;
+    }
     if(data == node->data){
         return node;
     }else if(node->rChild && data > node->data){
         *depth+=1;
         return findData_(node->rChild, data, depth);
-    }else if(node->rChild && data < node->data){
+    }else if(node->lChild && data < node->data){
         *depth+=1;
         return findData_(node->lChild, data, depth);
     }else{
-        depth = 0;
+        *depth = 0;
         return 0;
     }
 }
@@ -344,7 +347,7 @@ Vector** ToLayer(RBTree* tree){
 wchar_t* formatNode_(RBTNode* node, unsigned width){
     wchar_t* temp = (wchar_t*) calloc(width+1, sizeof(wchar_t));
     temp[width] = L'\0';
-    swprintf_s(temp,width,L"%ld,%u",node->data, node->color);
+    swprintf(temp,width,L"%ld,%u",node->data, node->color);
     StringProducer* sp = SPNewWStr(temp);
     free(temp);
     while(sp->length < width-2){
@@ -408,18 +411,18 @@ void drawTreeRecur(RBTNode* node, StringProducer* spWay, unsigned width){
     }
     wchar_t* preStr = SPBuildString(pre);
     SPRelease(pre);
-    wprintf_s(preStr);
+    wprintf(L"%ls", preStr);
     free(preStr);
     wchar_t* nodeStr = formatNode_(node, width);
-    wprintf_s(nodeStr);
+    wprintf(L"%ls", nodeStr);
     free(nodeStr);
     if (node->lChild && node->rChild)
-        wprintf_s(L"%c",T_cross);
+        wprintf(L"%lc",T_cross);
     else if (node->lChild && !node->rChild)
-        wprintf_s(L"%c",up_left);
+        wprintf(L"%lc",up_left);
     else if (!node->lChild && node->rChild)
-        wprintf_s(L"%c",down_left);
-    wprintf_s(L"\n");
+        wprintf(L"%lc",down_left);
+    wprintf(L"\n");
     if(node->lChild){
         StringProducer* left_way = SPAppendWChar(SPCloneSP(spWay), LEFT);
         drawTreeRecur(node->lChild, left_way, width);
@@ -445,7 +448,7 @@ RBTNode* findMinimumChild_(RBTNode* node, unsigned* depth){
     return findMinimumChild_(node->lChild, depth);
 }
 
-inline RBTNode* getExistingChild_(RBTNode* node){
+RBTNode* getExistingChild_(RBTNode* node){
     if(!node) return 0;
     if(node->lChild) return node->lChild;
     if(node->rChild) return node->rChild;
@@ -499,6 +502,7 @@ unsigned delete_(RBTree* tree, RBTNode* node){
     }else{
         node->parent->rChild = child;
     }
+    if(child) child->parent = node->parent;
     // node[o] child[x] parent[o]
     // node has no child, free node immediately
     if(!child){
@@ -546,9 +550,9 @@ unsigned delete_case_2(RBTree* tree, RBTNode* node){
 unsigned delete_case_3(RBTree* tree, RBTNode* node){
     RBTNode* sibling = getBrother_(node);
     if( (node->parent->color == BLACK) &&
-        (sibling->color == BLACK) &&
-        (sibling->lChild->color == BLACK) &&
-        (sibling->rChild->color == BLACK)){
+        (sibling && sibling->color == BLACK) &&
+        ((!sibling->lChild || sibling->lChild->color == BLACK)) &&
+        ((!sibling->rChild || sibling->rChild->color == BLACK))){
         sibling->color = RED;
         return delete_case_1(tree, node->parent);
     }else{
@@ -559,9 +563,9 @@ unsigned delete_case_3(RBTree* tree, RBTNode* node){
 unsigned delete_case_4(RBTree* tree, RBTNode* node){
     RBTNode* sibling = getBrother_(node);
     if( (node->parent->color == RED)&&
-        (sibling->color == BLACK)&&
-        (sibling->lChild->color == BLACK)&&
-        (sibling->rChild->color == BLACK)){
+        (sibling && sibling->color == BLACK)&&
+        ((!sibling->lChild || sibling->lChild->color == BLACK))&&
+        ((!sibling->rChild || sibling->rChild->color == BLACK))){
         sibling->color = RED;
         node->parent->color = BLACK;
         return 1;
@@ -572,12 +576,12 @@ unsigned delete_case_4(RBTree* tree, RBTNode* node){
 
 unsigned delete_case_5(RBTree* tree, RBTNode* node){
     RBTNode* sibling = getBrother_(node);
-    if(sibling->color == BLACK){
-        if((node->parent->lChild == node)&&(sibling->rChild->color == BLACK)&&(sibling->lChild->color == RED)){
+    if(sibling && sibling->color == BLACK){
+        if((node->parent->lChild == node)&&(!sibling->rChild || sibling->rChild->color == BLACK)&&(sibling->lChild && sibling->lChild->color == RED)){
             sibling->color = RED;
             sibling->lChild->color = BLACK;
             clockwise_(sibling);
-        }else if((node->parent->rChild == node)&&(sibling->lChild->color == BLACK)&&(sibling->rChild->color == RED)){
+        }else if((node->parent->rChild == node)&&(!sibling->lChild || sibling->lChild->color == BLACK)&&(sibling->rChild && sibling->rChild->color == RED)){
             sibling->color = RED;
             sibling->rChild->color = BLACK;
             anticlockwise_(sibling);
@@ -588,16 +592,17 @@ unsigned delete_case_5(RBTree* tree, RBTNode* node){
 
 unsigned delete_case_6(RBTree* tree, RBTNode* node){
     RBTNode* sibling = getBrother_(node);
+    if(!sibling) return 1;
     sibling->color = node->parent->color;
     node->parent->color = BLACK;
     if(node->parent->lChild == node){
-        sibling->rChild->color = BLACK;
+        if(sibling->rChild) sibling->rChild->color = BLACK;
         if(tree->root == node->parent){
             tree->root = node->parent->rChild;
         }
         anticlockwise_(node->parent);
     }else{
-        sibling->lChild->color = BLACK;
+        if(sibling->lChild) sibling->lChild->color = BLACK;
         if(tree->root == node->parent){
             tree->root = node->parent->lChild;
         }
